@@ -23,12 +23,19 @@ class IconGenerator
     private const ICO_SIZES = [16, 32, 48];
 
     /**
+     * Sizes iOS uses. They are flattened onto an opaque square, because iOS
+     * fills transparency with black and rounds the corners itself.
+     */
+    private const APPLE_SIZES = [120, 152, 167, 180];
+
+    /**
      * Generate every size from the uploaded source.
      *
      * @param  string  $source  Path on the public disk, e.g. `branding/logo.png`
+     * @param  string  $background  Hex colour behind the iOS sizes
      * @return array<string, string>  size (or "ico") => path on the public disk
      */
-    public static function generate(string $source): array
+    public static function generate(string $source, string $background = '#0d1117'): array
     {
         $disk = Storage::disk('public');
 
@@ -37,7 +44,8 @@ class IconGenerator
         }
 
         $binary = $disk->get($source);
-        $folder = 'branding/icons/' . substr(md5($binary), 0, 12);
+        // The colour is baked into the Apple sizes, so it belongs in the key.
+        $folder = 'branding/icons/' . substr(md5($binary . $background), 0, 12);
 
         // Already built for this exact image.
         if ($disk->exists("$folder/icon-512.png")) {
@@ -55,7 +63,13 @@ class IconGenerator
         $square = self::square($image);
 
         foreach (self::SIZES as $size) {
-            $disk->put("$folder/icon-$size.png", self::encode(self::resize($square, $size)));
+            $icon = self::resize($square, $size);
+
+            if (in_array($size, self::APPLE_SIZES, true)) {
+                $icon = self::flatten($icon, $background);
+            }
+
+            $disk->put("$folder/icon-$size.png", self::encode($icon));
         }
 
         $ico = self::ico($square);
@@ -141,6 +155,48 @@ class IconGenerator
         );
 
         return $target;
+    }
+
+    /**
+     * Composite an icon onto an opaque square of `$hex`.
+     *
+     * @param  \GdImage  $icon
+     * @return \GdImage
+     */
+    private static function flatten($icon, string $hex)
+    {
+        $size = imagesx($icon);
+        [$red, $green, $blue] = self::rgb($hex);
+
+        $canvas = imagecreatetruecolor($size, $size);
+        imagefill($canvas, 0, 0, imagecolorallocate($canvas, $red, $green, $blue));
+        imagealphablending($canvas, true);
+        imagecopy($canvas, $icon, 0, 0, 0, 0, $size, $size);
+        imagesavealpha($canvas, false);
+
+        return $canvas;
+    }
+
+    /**
+     * @return array{int, int, int}  Falls back to the dark brand background.
+     */
+    private static function rgb(string $hex): array
+    {
+        $hex = ltrim(trim($hex), '#');
+
+        if (strlen($hex) === 3) {
+            $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+        }
+
+        if (! preg_match('/^[0-9a-fA-F]{6}$/', $hex)) {
+            $hex = '0d1117';
+        }
+
+        return [
+            (int) hexdec(substr($hex, 0, 2)),
+            (int) hexdec(substr($hex, 2, 2)),
+            (int) hexdec(substr($hex, 4, 2)),
+        ];
     }
 
     /** @param  \GdImage  $image */

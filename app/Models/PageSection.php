@@ -131,7 +131,11 @@ class PageSection extends Model
             $shared = $section->shared ?? [];
             $source = $shared['favicon'] ?? null;
 
-            $shared['icons'] = filled($source) ? IconGenerator::generate($source) : [];
+            $background = $shared['backgroundColor'] ?? '#0d1117';
+
+            $shared['icons'] = filled($source)
+                ? IconGenerator::generate($source, (string) $background)
+                : [];
             $section->shared = $shared;
         });
 
