@@ -181,6 +181,18 @@ class ProjectSeeder extends Seeder
         ];
 
         foreach ($projects as $data) {
+            // The detail page renders one rich-text body; the demo copy is
+            // still written as problem/solution/result, so it is joined here.
+            $data['body'] = collect(array_keys($data['title']))
+                ->mapWithKeys(fn (string $locale) => [
+                    $locale => collect(['problem', 'solution', 'result'])
+                        ->map(fn (string $key) => $data[$key][$locale] ?? null)
+                        ->filter()
+                        ->map(fn (string $text) => '<p>'.e($text).'</p>')
+                        ->implode(''),
+                ])
+                ->all();
+
             Project::updateOrCreate(['slug' => $data['slug']], $data);
         }
     }

@@ -19,7 +19,10 @@ class ServiceResource extends JsonResource
             'summary' => $this->getTranslation('summary', $locale),
             'description' => $this->getTranslation('description', $locale),
             'features' => $this->getTranslation('features', $locale) ?: [],
+            'faq' => array_values($this->getTranslation('faq', $locale) ?: []),
             'sort_order' => $this->sort_order,
+            // Feeds <lastmod> in the sitemap, so it has to be the real edit date.
+            'updated_at' => $this->updated_at?->toIso8601String(),
             'seo' => $this->seoFor($locale),
         ];
     }

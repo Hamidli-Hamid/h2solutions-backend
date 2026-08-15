@@ -105,6 +105,34 @@ class ContentApiTest extends TestCase
             ->assertJsonPath('data.0.seo.robots.follow', false);
     }
 
+    public function test_a_service_serves_its_own_faq_in_the_requested_locale(): void
+    {
+        Service::create([
+            'slug' => 'web-development',
+            'title' => ['az' => 'Veb saytlar', 'en' => 'Websites'],
+            'summary' => ['az' => 'Qısa', 'en' => 'Short'],
+            'description' => ['az' => 'Uzun', 'en' => 'Long'],
+            'faq' => [
+                'az' => [['question' => 'Neçə səhifə?', 'answer' => 'Beş.']],
+                'en' => [['question' => 'How many pages?', 'answer' => 'Five.']],
+            ],
+        ]);
+
+        $this->getJson('/api/services/web-development?locale=en')
+            ->assertJsonPath('data.faq.0.question', 'How many pages?');
+
+        // A service without questions answers with an empty list, never null:
+        // the frontend skips the block on length.
+        Service::create([
+            'slug' => 'seo-optimization',
+            'title' => ['az' => 'SEO'],
+            'summary' => ['az' => 'Qısa'],
+            'description' => ['az' => 'Uzun'],
+        ]);
+
+        $this->getJson('/api/services/seo-optimization')->assertJsonPath('data.faq', []);
+    }
+
     public function test_editing_a_section_invalidates_the_cached_tree(): void
     {
         $page = Page::create(['key' => 'home', 'group' => 'page', 'label' => 'Home']);

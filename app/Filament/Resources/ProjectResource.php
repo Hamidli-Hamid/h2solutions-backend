@@ -69,6 +69,27 @@ class ProjectResource extends Resource
                         ->columnSpanFull(),
                 ]),
 
+            Forms\Components\Section::make('Video')
+                ->description('Plays at the top of the detail page. An uploaded file wins over the link when both are filled in.')
+                ->schema([
+                    Forms\Components\FileUpload::make('video_file')
+                        ->label('Video file')
+                        ->disk('public')
+                        ->directory('projects/videos')
+                        ->acceptedFileTypes(['video/mp4', 'video/webm', 'video/ogg'])
+                        // Anything heavier belongs on YouTube/Vimeo; PHP's own
+                        // upload_max_filesize still caps this server-side.
+                        ->maxSize(51200)
+                        ->helperText('MP4 / WebM, max 50 MB.')
+                        ->columnSpanFull(),
+                    Forms\Components\TextInput::make('video_url')
+                        ->label('Video link')
+                        ->url()
+                        ->maxLength(255)
+                        ->helperText('YouTube or Vimeo link, or a direct .mp4 URL.')
+                        ->columnSpanFull(),
+                ]),
+
             Forms\Components\Section::make('Translations')->schema(
                 LocaleTabs::make([
                     Forms\Components\TextInput::make('title.%locale%')
@@ -80,18 +101,11 @@ class ProjectResource extends Resource
                         ->rows(3)
                         ->required()
                         ->maxLength(400),
-                    Forms\Components\Textarea::make('problem.%locale%')
-                        ->label('Problem')
-                        ->rows(5)
-                        ->required(),
-                    Forms\Components\Textarea::make('solution.%locale%')
-                        ->label('Solution')
-                        ->rows(5)
-                        ->required(),
-                    Forms\Components\Textarea::make('result.%locale%')
-                        ->label('Result')
-                        ->rows(5)
-                        ->required(),
+                    Forms\Components\RichEditor::make('body.%locale%')
+                        ->label('Text')
+                        ->helperText('The whole project story — shown next to the other projects on the detail page.')
+                        ->required()
+                        ->disableToolbarButtons(['attachFiles']),
                 ])
             ),
 
@@ -108,7 +122,7 @@ class ProjectResource extends Resource
                     ->label('Title')
                     ->getStateUsing(fn (Project $r) => $r->getTranslation('title', config('locales.default'))),
                 Tables\Columns\TextColumn::make('client')->searchable(),
-                TranslationStatus::column(['title', 'summary', 'problem', 'solution', 'result']),
+                TranslationStatus::column(['title', 'summary', 'body']),
                 Tables\Columns\TextColumn::make('year')->sortable(),
                 Tables\Columns\IconColumn::make('is_published')->boolean()->label('Live'),
                 Tables\Columns\TextColumn::make('updated_at')->dateTime('Y-m-d H:i')->sortable(),

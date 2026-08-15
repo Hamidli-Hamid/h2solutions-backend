@@ -12,8 +12,13 @@ class Project extends Model
     use HasSeo;
     use HasTranslations;
 
-    /** @var array<int, string> */
-    public array $translatable = ['title', 'summary', 'problem', 'solution', 'result'];
+    /**
+     * `problem`, `solution` and `result` are legacy — their copy now lives in
+     * `body`; they stay declared so old rows remain readable.
+     *
+     * @var array<int, string>
+     */
+    public array $translatable = ['title', 'summary', 'body', 'problem', 'solution', 'result'];
 
     protected $fillable = [
         'slug',
@@ -22,8 +27,11 @@ class Project extends Model
         'url',
         'cover_image',
         'gallery',
+        'video_file',
+        'video_url',
         'title',
         'summary',
+        'body',
         'problem',
         'solution',
         'result',

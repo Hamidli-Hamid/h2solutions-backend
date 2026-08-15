@@ -21,6 +21,9 @@ class BlogPostResource extends JsonResource
             'cover_image' => $this->imageUrl($this->cover_image),
             'read_minutes' => $this->read_minutes,
             'published_at' => $this->published_at?->toIso8601String(),
+            // Drives <lastmod> and the `dateModified` of the BlogPosting markup,
+            // both of which have to be the real edit date rather than "now".
+            'updated_at' => $this->updated_at?->toIso8601String(),
             'author' => $this->whenLoaded('author', fn () => [
                 'name' => $this->author?->name,
             ]),

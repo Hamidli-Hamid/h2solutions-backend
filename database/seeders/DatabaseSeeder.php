@@ -12,6 +12,7 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             ContentSeeder::class,
             ServiceSeeder::class,
+            ServiceFaqSeeder::class,
             ProjectSeeder::class,
             BlogPostSeeder::class,
         ]);

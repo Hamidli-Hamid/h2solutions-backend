@@ -13,6 +13,12 @@ trait ResolvesMedia
 {
     protected function imageUrl(?string $path): ?string
     {
+        return $this->mediaUrl($path);
+    }
+
+    /** Same resolution for non-image uploads (video files, documents). */
+    protected function mediaUrl(?string $path): ?string
+    {
         if (blank($path)) {
             return null;
         }

@@ -46,25 +46,42 @@ class ServiceResource extends Resource
                 Forms\Components\TextInput::make('sort_order')->numeric()->default(0),
             ])->columns(2),
 
+            // `build` (not `make`): the FAQ repeater owns a nested schema, and
+            // cloned children would all point at the first tab's container.
             Forms\Components\Section::make('Translations')->schema(
-                LocaleTabs::make([
-                    Forms\Components\TextInput::make('title.%locale%')
+                LocaleTabs::build(fn (string $locale) => [
+                    Forms\Components\TextInput::make("title.$locale")
                         ->label('Title')
                         ->required()
                         ->maxLength(160),
-                    Forms\Components\Textarea::make('summary.%locale%')
+                    Forms\Components\Textarea::make("summary.$locale")
                         ->label('Summary')
                         ->rows(3)
                         ->required()
                         ->maxLength(400),
-                    Forms\Components\Textarea::make('description.%locale%')
+                    Forms\Components\Textarea::make("description.$locale")
                         ->label('Description')
                         ->rows(6)
                         ->required(),
-                    Forms\Components\Repeater::make('features.%locale%')
+                    Forms\Components\Repeater::make("features.$locale")
                         ->label('Features')
                         ->simple(Forms\Components\TextInput::make('feature')->required())
                         ->defaultItems(0)
+                        ->reorderable(),
+                    Forms\Components\Repeater::make("faq.$locale")
+                        ->label('FAQ')
+                        ->helperText('Shown on the service page above "The road to your project" — and submitted to search engines as FAQ structured data.')
+                        ->schema([
+                            Forms\Components\TextInput::make('question')
+                                ->required()
+                                ->maxLength(200),
+                            Forms\Components\Textarea::make('answer')
+                                ->rows(3)
+                                ->required(),
+                        ])
+                        ->itemLabel(fn (array $state): ?string => $state['question'] ?? null)
+                        ->defaultItems(0)
+                        ->collapsible()
                         ->reorderable(),
                 ])
             ),

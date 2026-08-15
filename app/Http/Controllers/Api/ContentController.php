@@ -7,6 +7,7 @@ use App\Models\Page;
 use App\Models\PageSection;
 use App\Support\ContentCache;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 
 /**
@@ -30,6 +31,7 @@ class ContentController extends Controller
                 'locale' => $locale,
                 'content' => $this->contentTree($locale),
                 'seo' => $this->seoByPage($locale),
+                'updated' => $this->updatedByPage(),
             ]
         );
 
@@ -95,6 +97,34 @@ class ContentController extends Controller
 
                 return [$page->key => $seo];
             })
+            ->all();
+    }
+
+    /**
+     * When each page was last edited, keyed the same way as `seo`. A page is
+     * only as fresh as its newest section, so the row's own timestamp is taken
+     * together with those of the blocks filed under it.
+     *
+     * The sitemap reports this as `<lastmod>`; without it every URL would be
+     * stamped with the moment the sitemap was requested, which Google reads as
+     * a site that claims to change on every crawl.
+     *
+     * @return array<string, string>
+     */
+    private function updatedByPage(): array
+    {
+        return Page::query()
+            ->withMax('sections', 'updated_at')
+            ->get()
+            ->mapWithKeys(function (Page $page) {
+                $latest = collect([$page->updated_at, $page->sections_max_updated_at])
+                    ->filter()
+                    ->map(fn ($value) => Carbon::parse($value))
+                    ->max();
+
+                return [$page->key => $latest?->toIso8601String()];
+            })
+            ->filter()
             ->all();
     }
 }

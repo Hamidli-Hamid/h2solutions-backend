@@ -13,7 +13,7 @@ class Service extends Model
     use HasTranslations;
 
     /** @var array<int, string> */
-    public array $translatable = ['title', 'summary', 'description', 'features'];
+    public array $translatable = ['title', 'summary', 'description', 'features', 'faq'];
 
     protected $fillable = [
         'slug',
@@ -22,12 +22,14 @@ class Service extends Model
         'summary',
         'description',
         'features',
+        'faq',
         'is_published',
         'sort_order',
     ];
 
     protected $casts = [
         'features' => 'array',
+        'faq' => 'array',
         'is_published' => 'boolean',
         'sort_order' => 'integer',
     ];

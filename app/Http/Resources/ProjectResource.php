@@ -26,11 +26,14 @@ class ProjectResource extends JsonResource
                 ->filter()
                 ->values()
                 ->all(),
+            'video_file' => $this->mediaUrl($this->video_file),
+            'video_url' => $this->video_url ?: null,
             'title' => $this->getTranslation('title', $locale),
             'summary' => $this->getTranslation('summary', $locale),
-            'problem' => $this->getTranslation('problem', $locale),
-            'solution' => $this->getTranslation('solution', $locale),
-            'result' => $this->getTranslation('result', $locale),
+            // Rich-text HTML from the admin editor.
+            'body' => $this->getTranslation('body', $locale),
+            // Feeds <lastmod> in the sitemap, so it has to be the real edit date.
+            'updated_at' => $this->updated_at?->toIso8601String(),
             'seo' => $this->seoFor($locale),
         ];
     }
