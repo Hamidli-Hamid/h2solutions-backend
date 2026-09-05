@@ -190,6 +190,11 @@ return [
                 'subtitle' => ['type' => 'textarea', 'rows' => 3],
                 'ctaPrimary' => ['type' => 'text', 'label' => 'Primary button'],
                 'ctaSecondary' => ['type' => 'text', 'label' => 'Secondary button'],
+                'proofPoints' => [
+                    'type' => 'list',
+                    'label' => 'Trust points',
+                    'help' => 'Short lines with a tick under the intro text. The first three are shown; leave the list empty to fall back to the "Why H2 Solutions?" headings.',
+                ],
                 'servicesTitle' => ['type' => 'text', 'label' => 'Service grid heading'],
                 'services' => [
                     'type' => 'repeater',
